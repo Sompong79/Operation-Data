@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DCC Dashboard – BLCP Power Limited</title>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0f172a;--surface:#1e293b;--surface2:#273549;--border:#334155;--text:#f1f5f9;--text2:#94a3b8;--accent:#3b82f6;--green:#22c55e;--yellow:#f59e0b;--red:#ef4444}
+body{font-family:'Kanit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.header-left{display:flex;align-items:center;gap:12px}
+.logo{width:40px;height:40px;background:linear-gradient(135deg,#f59e0b,#ef4444);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.header-title{font-size:16px;font-weight:700}
+.header-sub{font-size:11px;color:var(--text2)}
+.header-right{display:flex;align-items:center;gap:12px}
+.updated-badge{font-size:11px;color:var(--text2);background:var(--surface2);padding:6px 12px;border-radius:20px;border:1px solid var(--border)}
+.upload-btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-family:'Kanit',sans-serif;font-size:13px;font-weight:500;cursor:pointer}
+.main{padding:24px;max-width:1400px;margin:0 auto}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.kpi{background:var(--surface);border-radius:12px;padding:20px;border:1px solid var(--border)}
+.kpi-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+.kpi-value{font-size:24px;font-weight:700;margin-bottom:4px}
+.kpi-sub{font-size:11px;color:var(--text2)}
+.kpi-green .kpi-value{color:var(--green)}
+.kpi-blue .kpi-value{color:var(--accent)}
+.kpi-yellow .kpi-value{color:var(--yellow)}
+.charts-row{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:24px}
+.chart-card{background:var(--surface);border-radius:12px;padding:20px;border:1px solid var(--border)}
+.chart-title{font-size:14px;font-weight:600;margin-bottom:4px}
+.chart-sub{font-size:11px;color:var(--text2);margin-bottom:16px}
+.chart-wrap{position:relative;height:260px}
+.table-card{background:var(--surface);border-radius:12px;padding:20px;border:1px solid var(--border);margin-bottom:24px}
+.table-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.table-title{font-size:14px;font-weight:600}
+.table-controls{display:flex;gap:8px}
+.search-input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--text);font-family:'Kanit',sans-serif;font-size:12px;outline:none;width:160px}
+.filter-select{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--text);font-family:'Kanit',sans-serif;font-size:12px;outline:none;cursor:pointer}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:var(--surface2);color:var(--text2);font-weight:600;padding:10px 12px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--border)}
+td{padding:10px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500}
+.badge-pass{background:rgba(34,197,94,.15);color:#4ade80}
+.badge-fail{background:rgba(239,68,68,.15);color:#f87171}
+.badge-notest{background:rgba(148,163,184,.15);color:var(--text2)}
+.num{text-align:right}
+.cwt-high{color:var(--red)}
+.cwt-ok{color:var(--green)}
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;gap:16px;color:var(--text2)}
+.spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.tabs{display:flex;gap:4px;background:var(--surface2);padding:4px;border-radius:10px;margin-bottom:20px;width:fit-content}
+.tab{padding:8px 20px;border-radius:8px;font-family:'Kanit',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--text2);transition:all .2s}
+.tab.active{background:var(--accent);color:#fff}
+.tab-content{display:none}
+.tab-content.active{display:block}
+@media(max-width:768px){.kpi-grid{grid-template-columns:1fr 1fr}.charts-row{grid-template-columns:1fr}.header-right{display:none}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-left">
+    <div class="logo">⚡</div>
+    <div>
+      <div class="header-title">DCC Analytics Dashboard</div>
+      <div class="header-sub">BLCP Power Limited · Declared Capacity Check</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="updated-badge" id="updated-badge">กำลังโหลด...</div>
+    <button class="upload-btn" onclick="window.location.href='upload.html'">⬆️ Upload ข้อมูล</button>
+  </div>
+</div>
+<div id="loading" class="loading">
+  <div class="spinner"></div>
+  <div>กำลังโหลดข้อมูล...</div>
+</div>
+<div id="app" class="main" style="display:none">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('overview')">📊 Overview</button>
+    <button class="tab" onclick="switchTab('table')">📋 ตารางข้อมูล</button>
+  </div>
+  <div class="tab-content active" id="tab-overview">
+    <div class="kpi-grid">
+      <div class="kpi kpi-blue"><div class="kpi-label">ปีที่ทดสอบล่าสุด</div><div class="kpi-value" id="kpi-year">—</div><div class="kpi-sub" id="kpi-half">—</div></div>
+      <div class="kpi kpi-green"><div class="kpi-label">Unit 1 – Net Cap ล่าสุด</div><div class="kpi-value" id="kpi-u1">—</div><div class="kpi-sub" id="kpi-u1-date">—</div></div>
+      <div class="kpi kpi-yellow"><div class="kpi-label">Unit 2 – Net Cap ล่าสุด</div><div class="kpi-value" id="kpi-u2">—</div><div class="kpi-sub" id="kpi-u2-date">—</div></div>
+      <div class="kpi"><div class="kpi-label">จำนวนการทดสอบทั้งหมด</div><div class="kpi-value" id="kpi-total">—</div><div class="kpi-sub" id="kpi-range">—</div></div>
+    </div>
+    <div class="charts-row">
+      <div class="chart-card"><div class="chart-title">Net Capacity (kW) รายปี</div><div class="chart-sub">Unit 1 และ Unit 2 – Test Net Cap</div><div class="chart-wrap"><canvas id="chart-netcap"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title">Seawater Temp CWT (°C)</div><div class="chart-sub">อุณหภูมิน้ำทะเลขณะทดสอบ</div><div class="chart-wrap"><canvas id="chart-cwt"></canvas></div></div>
+    </div>
+    <div class="chart-card" style="margin-bottom:24px"><div class="chart-title">MW Output Over DCC (kW)</div><div class="chart-sub">ส่วนต่าง Net Cap เหนือ DCC Limit</div><div class="chart-wrap" style="height:220px"><canvas id="chart-over"></canvas></div></div>
+  </div>
+  <div class="tab-content" id="tab-table">
+    <div class="table-card">
+      <div class="table-header">
+        <div class="table-title">📋 ผลการทดสอบ DCC ทั้งหมด</div>
+        <div class="table-controls">
+          <input class="search-input" type="text" id="search-input" placeholder="ค้นหาปี..." oninput="renderTable()">
+          <select class="filter-select" id="filter-half" onchange="renderTable()">
+            <option value="">ทุกรอบ</option>
+            <option value="1st">1st</option>
+            <option value="2nd">2nd</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>ปี</th><th>รอบ</th>
+            <th>วันทดสอบ U1</th><th class="num">Net Cap U1 (kW)</th><th class="num">CWT U1 (°C)</th><th class="num">Over DCC U1 (kW)</th><th>Pass U1</th>
+            <th>วันทดสอบ U2</th><th class="num">Net Cap U2 (kW)</th><th class="num">CWT U2 (°C)</th><th class="num">Over DCC U2 (kW)</th><th>Pass U2</th>
+          </tr></thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const GITHUB_REPO='Sompong79/Operation-Data';
+const GITHUB_FILE='data.json';
+let allData=[];
+let charts={};
+async function loadData(){
+  try{
+    const url=`https://raw.githubusercontent.com/${GITHUB_REPO}/main/${GITHUB_FILE}?t=${Date.now()}`;
+    const res=await fetch(url);
+    if(!res.ok)throw new Error('ยังไม่มีข้อมูล กรุณา Upload ไฟล์ก่อน');
+    const json=await res.json();
+    allData=json.dcc||[];
+    const updated=json.updated?new Date(json.updated).toLocaleString('th-TH',{day:'2-digit',month:'short',year:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
+    document.getElementById('updated-badge').textContent='อัปเดต: '+updated;
+    document.getElementById('loading').style.display='none';
+    document.getElementById('app').style.display='block';
+    renderKPI();renderCharts();renderTable();
+  }catch(e){
+    document.getElementById('loading').innerHTML=`<div style="text-align:center"><div style="font-size:40px;margin-bottom:16px">📭</div><div style="font-size:15px;margin-bottom:8px">${e.message}</div><button onclick="window.location.href='upload.html'" style="background:#3b82f6;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-family:Kanit,sans-serif;font-size:13px;cursor:pointer;margin-top:8px">⬆️ Upload ข้อมูล</button></div>`;
+  }
+}
+function renderKPI(){
+  if(!allData.length)return;
+  const last=[...allData].reverse().find(r=>r.netU1>0||r.netU2>0)||allData[allData.length-1];
+  document.getElementById('kpi-year').textContent=last.year;
+  document.getElementById('kpi-half').textContent='รอบ '+last.half;
+  document.getElementById('kpi-u1').textContent=last.netU1?last.netU1.toLocaleString()+' kW':'—';
+  document.getElementById('kpi-u1-date').textContent=last.dateU1||'—';
+  document.getElementById('kpi-u2').textContent=last.netU2?last.netU2.toLocaleString()+' kW':'—';
+  document.getElementById('kpi-u2-date').textContent=last.dateU2||'—';
+  document.getElementById('kpi-total').textContent=allData.length+' ครั้ง';
+  const years=allData.map(r=>r.year).sort();
+  document.getElementById('kpi-range').textContent='ปี '+years[0]+' – '+years[years.length-1];
+}
+function renderCharts(){
+  const labels=allData.map(r=>r.year+' '+r.half);
+  const cfg={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8',font:{family:'Kanit',size:11}}}},scales:{x:{ticks:{color:'#94a3b8',font:{family:'Kanit',size:10},maxRotation:45},grid:{color:'rgba(51,65,85,0.5)'}},y:{ticks:{color:'#94a3b8',font:{family:'Kanit',size:10}},grid:{color:'rgba(51,65,85,0.5)'}}}};
+  if(charts.netcap)charts.netcap.destroy();
+  charts.netcap=new Chart(document.getElementById('chart-netcap'),{type:'line',data:{labels,datasets:[{label:'Unit 1',data:allData.map(r=>r.netU1||null),borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.1)',tension:.3,fill:true,spanGaps:true,pointRadius:3},{label:'Unit 2',data:allData.map(r=>r.netU2||null),borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,.1)',tension:.3,fill:true,spanGaps:true,pointRadius:3}]},options:cfg});
+  if(charts.cwt)charts.cwt.destroy();
+  charts.cwt=new Chart(document.getElementById('chart-cwt'),{type:'line',data:{labels,datasets:[{label:'U1',data:allData.map(r=>r.cwtU1||null),borderColor:'#22c55e',tension:.3,spanGaps:true,pointRadius:3},{label:'U2',data:allData.map(r=>r.cwtU2||null),borderColor:'#a78bfa',tension:.3,spanGaps:true,pointRadius:3}]},options:cfg});
+  if(charts.over)charts.over.destroy();
+  charts.over=new Chart(document.getElementById('chart-over'),{type:'bar',data:{labels,datasets:[{label:'Unit 1',data:allData.map(r=>r.overU1||null),backgroundColor:'rgba(59,130,246,.7)',borderRadius:4},{label:'Unit 2',data:allData.map(r=>r.overU2||null),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:cfg});
+}
+function renderTable(){
+  const search=document.getElementById('search-input').value.toLowerCase();
+  const half=document.getElementById('filter-half').value;
+  const filtered=allData.filter(r=>(!search||String(r.year).includes(search))&&(!half||String(r.half).toLowerCase()===half.toLowerCase()));
+  const tbody=document.getElementById('table-body');
+  tbody.innerHTML=filtered.map(r=>`<tr><td><strong>${r.year}</strong></td><td>${r.half}</td><td>${r.dateU1||'—'}</td><td class="num">${r.netU1?r.netU1.toLocaleString():'—'}</td><td class="num ${r.cwtU1>31?'cwt-high':'cwt-ok'}">${r.cwtU1||'—'}</td><td class="num">${r.overU1?r.overU1.toLocaleString():'—'}</td><td>${badge(r.passU1)}</td><td>${r.dateU2||'—'}</td><td class="num">${r.netU2?r.netU2.toLocaleString():'—'}</td><td class="num ${r.cwtU2>31?'cwt-high':'cwt-ok'}">${r.cwtU2||'—'}</td><td class="num">${r.overU2?r.overU2.toLocaleString():'—'}</td><td>${badge(r.passU2)}</td></tr>`).join('');
+}
+function badge(v){const lv=String(v||'').toLowerCase();return lv==='pass'?'<span class="badge badge-pass">✓ Pass</span>':lv.includes('no')?'<span class="badge badge-notest">No Test</span>':v?'<span class="badge badge-fail">✗ Fail</span>':'<span class="badge badge-notest">—</span>';}
+function switchTab(tab){document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['overview','table'][i]===tab));document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));document.getElementById('tab-'+tab).classList.add('active');}
+loadData();
+</script>
+</body>
+</html>
