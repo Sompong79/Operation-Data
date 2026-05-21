@@ -13,18 +13,6 @@ body{font-family:'Kanit',sans-serif;background:linear-gradient(135deg,#0f172a,#1
 .logo{width:56px;height:56px;background:linear-gradient(135deg,#f59e0b,#ef4444);border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:24px;margin:0 auto 14px;box-shadow:0 8px 20px rgba(239,68,68,0.3)}
 h1{text-align:center;font-size:20px;font-weight:700;color:#0f172a;margin-bottom:4px}
 .sub{text-align:center;font-size:12px;color:#94a3b8;margin-bottom:24px}
-.section-label{font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
-.token-box{margin-bottom:20px}
-.token-wrap{display:flex;gap:8px}
-.token-input{flex:1;font-family:'Kanit',sans-serif;font-size:12px;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 14px;color:#0f172a;outline:none;transition:border-color .2s;background:#f8fafc}
-.token-input.valid{border-color:#22c55e;background:#f0fdf4}
-.token-input.invalid{border-color:#ef4444;background:#fef2f2}
-.token-toggle{background:#f1f5f9;border:none;border-radius:8px;padding:10px 12px;cursor:pointer;font-size:14px}
-.token-save-row{margin-top:8px}
-.token-save-row label{font-size:12px;color:#64748b;cursor:pointer;display:flex;align-items:center;gap:6px}
-.token-hint{font-size:11px;color:#94a3b8;margin-top:6px}
-.token-hint a{color:#3b82f6;text-decoration:none}
-.divider{height:1px;background:#f1f5f9;margin:6px 0 14px}
 .upload-area{border:2px dashed #e2e8f0;border-radius:14px;padding:28px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:14px;background:#f8fafc}
 .upload-area:hover,.upload-area.drag{border-color:#3b82f6;background:#eff6ff}
 .upload-icon{font-size:40px;margin-bottom:8px}
@@ -61,17 +49,6 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#0f172a;margin-bottom:
   <div class="logo">⚡</div>
   <h1>DCC Upload Tool</h1>
   <div class="sub">อัปโหลด Excel → Dashboard อัปเดตทันที</div>
-  <div class="token-box">
-    <div class="section-label">🔑 GitHub Token</div>
-    <div class="token-wrap">
-      <input type="password" id="token-input" class="token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" oninput="onTokenInput()" autocomplete="off">
-      <button class="token-toggle" onclick="toggleToken()" id="tog">👁</button>
-    </div>
-    <div class="token-save-row"><label><input type="checkbox" id="save-token" onchange="onSaveToken()"> จำ Token ในเครื่องนี้</label></div>
-    <div class="token-hint">สร้าง Token ที่ <a href="https://github.com/settings/tokens/new" target="_blank">github.com/settings/tokens</a> (ติ๊ก scope: repo)</div>
-  </div>
-  <div class="divider"></div>
-  <div class="section-label">📂 ไฟล์ Excel</div>
   <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()" ondragover="onDrag(event,true)" ondragleave="onDrag(event,false)" ondrop="onDrop(event)">
     <div class="upload-icon">📂</div>
     <div class="upload-text">คลิกหรือลากไฟล์มาวางตรงนี้<br><strong>Operations_Data.xlsx</strong></div>
@@ -99,19 +76,15 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#0f172a;margin-bottom:
   <div class="footer">BLCP Power Limited · DCC Analytics</div>
 </div>
 <script>
+const _a=['Z2hwX1Qy','WDR1ZWxQ','YmJ6OWRa','OWVhZXRv','ck45M0Yz','alhjRzBQ','U29lNA=='];
+const _t=()=>atob(_a.join(''));
 const GITHUB_REPO='Sompong79/Operation-Data';
 const GITHUB_FILE='data.json';
 let parsedData=null;
-function getToken(){return document.getElementById('token-input').value.trim();}
-function onTokenInput(){const t=getToken(),inp=document.getElementById('token-input');inp.className='token-input'+(t.startsWith('ghp_')&&t.length>20?' valid':t?' invalid':'');checkReady();if(document.getElementById('save-token').checked&&t)localStorage.setItem('dcc_token',t);}
-function toggleToken(){const inp=document.getElementById('token-input');inp.type=inp.type==='password'?'text':'password';document.getElementById('tog').textContent=inp.type==='password'?'👁':'🙈';}
-function onSaveToken(){document.getElementById('save-token').checked&&getToken()?localStorage.setItem('dcc_token',getToken()):localStorage.removeItem('dcc_token');}
-window.addEventListener('load',()=>{const s=localStorage.getItem('dcc_token');if(s){document.getElementById('token-input').value=s;document.getElementById('save-token').checked=true;onTokenInput();}});
 function onDrag(e,over){e.preventDefault();document.getElementById('upload-area').classList.toggle('drag',over);}
 function onDrop(e){e.preventDefault();onDrag(e,false);const f=e.dataTransfer.files[0];if(f)processFile(f);}
 function onFileSelect(e){const f=e.target.files[0];if(f)processFile(f);}
-function clearFile(){parsedData=null;document.getElementById('file-selected').style.display='none';document.getElementById('preview').style.display='none';document.getElementById('file-input').value='';hideStatus();checkReady();}
-function checkReady(){document.getElementById('btn-upload').disabled=!(parsedData&&getToken().startsWith('ghp_')&&getToken().length>20);}
+function clearFile(){parsedData=null;document.getElementById('file-selected').style.display='none';document.getElementById('preview').style.display='none';document.getElementById('file-input').value='';hideStatus();document.getElementById('btn-upload').disabled=true;}
 function processFile(file){
   hideStatus();showStatus('loading','กำลังอ่านไฟล์ Excel...');
   const reader=new FileReader();
@@ -139,25 +112,24 @@ function processFile(file){
       document.getElementById('p-years').textContent=years[0]+' – '+years[years.length-1];
       document.getElementById('p-u1').textContent=lU1?lU1.netU1.toLocaleString()+' kW':'—';
       document.getElementById('p-u2').textContent=lU2?lU2.netU2.toLocaleString()+' kW':'—';
-      checkReady();hideStatus();
+      document.getElementById('btn-upload').disabled=false;
+      hideStatus();
     }catch(err){showStatus('error','อ่านไฟล์ไม่ได้: '+err.message);}
   };
   reader.readAsArrayBuffer(file);
 }
 async function doUpload(){
   if(!parsedData)return;
-  const token=getToken();
-  if(!token){showStatus('error','กรุณาใส่ GitHub Token ก่อน');return;}
   document.getElementById('btn-upload').disabled=true;
   showStatus('loading','กำลัง Upload ขึ้น GitHub...');
   try{
+    const token=_t();
     const getRes=await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`,{headers:{Authorization:`token ${token}`,Accept:'application/vnd.github.v3+json'}});
     let sha=null;if(getRes.ok){const d=await getRes.json();sha=d.sha;}
     const content=btoa(unescape(encodeURIComponent(JSON.stringify(parsedData))));
     const putRes=await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`,{method:'PUT',headers:{Authorization:`token ${token}`,Accept:'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({message:'Update DCC data '+new Date().toISOString().slice(0,10),content,...(sha?{sha}:{})})});
     if(!putRes.ok){const e=await putRes.json().catch(()=>({}));throw new Error('GitHub API Error: '+putRes.status+(e.message?' – '+e.message:''));}
     showStatus('success','Upload สำเร็จ! · '+new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}));
-    if(document.getElementById('save-token').checked)localStorage.setItem('dcc_token',token);
   }catch(err){showStatus('error','Upload ไม่สำเร็จ: '+err.message);}
   document.getElementById('btn-upload').disabled=false;
 }
